@@ -3,7 +3,7 @@ package info.batey.memcache
 import java.net.InetSocketAddress
 
 import akka.actor.{ActorRef, Props, ActorSystem, Actor}
-import akka.io.Tcp.{Bound, CommandFailed, Bind}
+import akka.io.Tcp._
 import akka.io.{IO, Tcp}
 import akka.util.Timeout
 import com.typesafe.scalalogging.LazyLogging
@@ -59,6 +59,11 @@ class MemcacheServer(inetSocketAddress: InetSocketAddress) extends Actor with La
     case b @ Bound(localAddress) =>
       logger.debug(s"Bound to $inetSocketAddress, alerting our starter")
       start ! "we're done baby!"
+
+    case connected @ Connected(remote, local) =>
+      logger.debug(s"Received connection $connected")
+      val handler = context.actorOf(Props[MemcacheConnection])
+      sender() ! Register(handler)
 
     case msg @ _ =>
       logger.debug(s"Received message $msg")
