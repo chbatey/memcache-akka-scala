@@ -17,13 +17,25 @@ class MemcacheConnectionFSMTest extends TestKit(ActorSystem("MemcacheConnectionT
 
   test("Should respond with STORED") {
     underTest ! Received(ByteString("set batey 0 100 2\r\n".getBytes ++ Array[Byte](1, 2) ++ "\r\n".getBytes))
+
     expectMsg(Write(ByteString("STORED\r\n")))
   }
 
   test("Should do nothing if data does not arrive") {
     val partialMessage: ByteString = ByteString("set batey 0 100 2\r\n".getBytes)
+
     underTest ! Received(partialMessage)
+
     expectNoMsg()
   }
 
+  test("Should handle message receiving in separate packets") {
+    val partialMessage: ByteString = ByteString("set batey 0 100 2\r\n".getBytes)
+    val restOfMessage: ByteString = ByteString(Array[Byte](1, 2) ++ "\r\n".getBytes)
+
+    underTest ! Received(partialMessage)
+    underTest ! Received(restOfMessage)
+
+    expectMsg(Write(ByteString("STORED\r\n")))
+  }
 }

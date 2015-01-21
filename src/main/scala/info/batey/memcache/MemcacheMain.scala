@@ -62,7 +62,7 @@ class MemcacheServer(inetSocketAddress: InetSocketAddress) extends Actor with La
 
     case connected @ Connected(remote, local) =>
       logger.debug(s"Received connection $connected")
-      val handler = context.actorOf(Props[MemcacheConnection])
+      val handler = context.actorOf(Props[MemcacheConnectionFSM])
       sender() ! Register(handler)
 
     case msg @ _ =>
